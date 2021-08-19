@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "http-proxy-middleware": "^2.0.1",
-    "jsonwebtoken": "^8.5.1"
+    "jsonwebtoken": "^8.5.1",
+    "nanoid": "^3.1.25"
   }
 }
