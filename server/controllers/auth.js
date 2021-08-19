@@ -1,5 +1,6 @@
 import User from '../models/user';
 import {hashPassword, comparePassword } from "../utils/auth";
+import jwt from 'jsonwebtoken';
 export const register = async (req, res) =>{
 try{
     // console.log(req.body);
@@ -35,4 +36,55 @@ return res.json({ok:true});
 console.log(err)
 return res.status(400).send("Error. Try Again")
 }
+}
+
+export const login = async (req, res) =>{
+    try{
+// console.log(req.body);
+//check if db has user with that email 
+const {email, password} = req.body
+const user = await User.findOne({email}).exec();
+if(!user) return res.status(400).send("No user found");
+
+//check password
+const match = await comparePassword(password, user.password);
+//create signed jwt
+const token = jwt.sign({_id:user._id}, process.env.JWT_SECRET, {
+    expiresIn: "3d",
+    
+});
+//return user and token, exclude password 
+user.password = undefined; 
+
+res.cookie("token",token,{
+    httpOnly:true,
+    // secure:true, // Only works on https
+});
+
+res.json(user);
+
+    }catch(err){
+        console.log(err)
+        return res.status(400).send("Error. Try again.");
+    }
+}
+
+export const logout = async (req , res) =>{
+    try{
+        res.clearCookie("token");
+        return res.json({message: "Signout success"})
+    }catch(err){
+        console.log(err)
+        
+    }
+}
+
+export const currentUser = async (req,res) =>{
+    try{
+        const user = await User.findById(req.user._id).select('-password').exec();
+        console.log('CURRENT USER', user);
+        return res.json({ok:true});
+    }catch(err){
+console.log(err);
+    }
 }
