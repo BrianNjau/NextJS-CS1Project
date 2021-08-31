@@ -1,5 +1,7 @@
 import User from "../models/user";
 import queryString from 'query-string';
+import PlaylistContent from "../models/content";
+
 const stripe = require('stripe')(process.env.STRIPE_SECRET);
 export const makeCreator = async (req,res)=>{
    try{
@@ -54,4 +56,28 @@ export const getAccountStatus = async(req,res)=>{
     }
 
 
+}
+
+export const currentCreator = async (req,res) =>{
+    try{
+        let user = await User.findById(req.user._id).select('-password').exec();
+        if(!user.role.includes("Creator")){
+            return res.sendStatus(403);
+        }else{
+            res.json({ok:true});
+        }
+
+    }catch(err){
+        console.log(err);
+    }
+}
+
+export const creatorContents = async (req,res)=>{
+try{
+    const contents = await PlaylistContent.find({creator:req.user._id})
+    .sort({createdAt: -1})
+    .exec();
+    res.json(contents);
+
+}catch(err){console.log(err)}
 }
